@@ -14,7 +14,7 @@ from lxml.etree import QName
 from zeep import ns
 from zeep.exceptions import SignatureVerificationFailed
 from zeep.utils import detect_soap_env
-from zeep.wsse.utils import ensure_id, get_security_header
+from zeep.wsse.utils import ensure_id, get_security_header, ID_ATTR
 
 try:
     import xmlsec
@@ -274,18 +274,21 @@ def _sign_envelope_with_key_binary(envelope, key, signature_method, digest_metho
             "oasis-200401-wss-x509-token-profile-1.0#X509v3"
         },
     )
-    bintok = etree.Element(
-        QName(ns.WSSE, "BinarySecurityToken"),
-        {
-            "ValueType": "http://docs.oasis-open.org/wss/2004/01/"
-            "oasis-200401-wss-x509-token-profile-1.0#X509v3",
-            "EncodingType": "http://docs.oasis-open.org/wss/2004/01/"
-            "oasis-200401-wss-soap-message-security-1.0#Base64Binary",
-        },
-    )
+    bst_qname = QName(ns.WSSE, "BinarySecurityToken")
+    bintok = security.find(bst_qname)
+    if bintok is None:
+        bintok = etree.Element(
+            QName(ns.WSSE, "BinarySecurityToken"),
+            {
+                "ValueType": "http://docs.oasis-open.org/wss/2004/01/"
+                "oasis-200401-wss-x509-token-profile-1.0#X509v3",
+                "EncodingType": "http://docs.oasis-open.org/wss/2004/01/"
+                "oasis-200401-wss-soap-message-security-1.0#Base64Binary",
+            },
+        )
+        security.insert(1, bintok)
     ref.attrib["URI"] = "#" + ensure_id(bintok)
     bintok.text = x509_data.find(QName(ns.DS, "X509Certificate")).text
-    security.insert(1, bintok)
     x509_data.getparent().remove(x509_data)
 
 
