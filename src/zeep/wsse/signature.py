@@ -32,7 +32,10 @@ def _read_file(f_name):
 
 
 def _make_sign_key(key_data, cert_data, password):
-    key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PEM, password)
+    try:
+        key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PEM, password)
+    except xmlsec.Error:
+        key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PKCS12_PEM, password)
     key.load_cert_from_memory(cert_data, xmlsec.KeyFormat.PEM)
     return key
 
