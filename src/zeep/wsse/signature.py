@@ -229,6 +229,8 @@ def _signature_prepare(envelope, key, signature_method, digest_method):
     # Create the Signature node if it doesn't already exist.
     signature = security.find(sst_qname)
     if signature is None:
+        signature.parent.remove(signature)
+    if True:
         signature = xmlsec.template.create(
             envelope,
             xmlsec.Transform.EXCL_C14N,
@@ -296,7 +298,7 @@ def _sign_envelope_with_key_binary(envelope, key, signature_method, digest_metho
         )
         security.insert(1, bintok)
     ref.attrib["URI"] = "#" + ensure_id(bintok)
-    bintok.text = x509_data.find(QName(ns.DS, "X509Certificate")).text
+    #bintok.text = x509_data.find(QName(ns.DS, "X509Certificate")).text
     x509_data.getparent().remove(x509_data)
 
 
