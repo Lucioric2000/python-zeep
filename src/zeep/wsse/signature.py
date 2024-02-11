@@ -229,8 +229,8 @@ def _signature_prepare(envelope, key, signature_method, digest_method):
     # Create the Signature node if it doesn't already exist.
     signature = security.find(sst_qname)
     if signature is None:
-        signature.parent.remove(signature)
-    if True:
+    #    signature.getparent().remove(signature)
+    #if True:
         signature = xmlsec.template.create(
             envelope,
             xmlsec.Transform.EXCL_C14N,
@@ -298,7 +298,9 @@ def _sign_envelope_with_key_binary(envelope, key, signature_method, digest_metho
         )
         security.insert(1, bintok)
     ref.attrib["URI"] = "#" + ensure_id(bintok)
-    #bintok.text = x509_data.find(QName(ns.DS, "X509Certificate")).text
+    x509certificate_node = x509_data.find(QName(ns.DS, "X509Certificate"))
+    if x509certificate_node is not None:
+        bintok.text = x509certificate_node.text
     x509_data.getparent().remove(x509_data)
 
 
@@ -369,11 +371,17 @@ def _sign_node(ctx, signature, target, digest_method=None):
     ctx.register_id(target, "Id", ns.WSU)
 
     # Add reference to signature with URI attribute pointing to that ID.
-    ref = xmlsec.template.add_reference(
-        signature, digest_method or xmlsec.Transform.SHA1, uri="#" + node_id
-    )
-    # This is an XML normalization transform which will be performed on the
-    # target node contents before signing. This ensures that changes to
-    # irrelevant whitespace, attribute ordering, etc won't invalidate the
-    # signature.
-    xmlsec.template.add_transform(ref, xmlsec.Transform.EXCL_C14N)
+    uri = "#" + node_id
+    sap = f'.//*[local-name()="Reference" and @URI="{uri}"]'
+    sip = signature.xpath(sap)
+    if len(sip) > 0:
+        ref = sip[0]
+    else:
+        ref = xmlsec.template.add_reference(
+            signature, digest_method or xmlsec.Transform.SHA1, uri="#" + node_id
+        )
+        # This is an XML normalization transform which will be performed on the
+        # target node contents before signing. This ensures that changes to
+        # irrelevant whitespace, attribute ordering, etc won't invalidate the
+        # signature.
+        xmlsec.template.add_transform(ref, xmlsec.Transform.EXCL_C14N)
