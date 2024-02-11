@@ -224,12 +224,18 @@ def _signature_prepare(envelope, key, signature_method, digest_method):
     """Prepare envelope and sign."""
     soap_env = detect_soap_env(envelope)
 
-    # Create the Signature node.
-    signature = xmlsec.template.create(
-        envelope,
-        xmlsec.Transform.EXCL_C14N,
-        signature_method or xmlsec.Transform.RSA_SHA1,
-    )
+    security = get_security_header(envelope)
+    sst_qname = QName(ns.DS, "Signature")
+    # Create the Signature node if it doesn't already exist.
+    signature = security.find(sst_qname)
+    if signature is None:
+        signature = xmlsec.template.create(
+            envelope,
+            xmlsec.Transform.EXCL_C14N,
+            signature_method or xmlsec.Transform.RSA_SHA1,
+        )
+        # Insert the Signature node in the wsse:Security header.
+        security.insert(0, signature)
 
     # Add a KeyInfo node with X509Data child to the Signature. XMLSec will fill
     # in this template with the actual certificate details when it signs.
@@ -238,9 +244,7 @@ def _signature_prepare(envelope, key, signature_method, digest_method):
     xmlsec.template.x509_data_add_issuer_serial(x509_data)
     xmlsec.template.x509_data_add_certificate(x509_data)
 
-    # Insert the Signature node in the wsse:Security header.
     security = get_security_header(envelope)
-    security.insert(0, signature)
 
     # Perform the actual signing.
     ctx = xmlsec.SignatureContext()
