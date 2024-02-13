@@ -252,9 +252,21 @@ def _signature_prepare(envelope, key, signature_method, digest_method):
     ctx = xmlsec.SignatureContext()
     ctx.key = key
     _sign_node(ctx, signature, envelope.find(QName(soap_env, "Body")), digest_method)
+
+    # Sign UserToken
+    unt = security.find(QName(ns.WSSE, "UsernameToken"))
+    if unt is not None:
+        _sign_node(ctx, signature, unt, digest_method)
+
     timestamp = security.find(QName(ns.WSU, "Timestamp"))
-    if timestamp != None:
+    if timestamp is not None:
         _sign_node(ctx, signature, timestamp, digest_method)
+
+    # Sign WSA elements.
+    soap_header = envelope.find(QName(soap_env, "Header"))
+    for wsa_elem in ["To", "MessageID", "Action"]:
+        _sign_node(ctx, signature, soap_header.find(QName(ns.WSA, wsa_elem)), digest_method)
+
     ctx.sign(signature)
 
     # Place the X509 data inside a WSSE SecurityTokenReference within
