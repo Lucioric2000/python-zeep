@@ -32,6 +32,7 @@ def _read_file(f_name):
 
 
 def _make_sign_key(key_data, cert_data, password):
+    # keys can be ['BINARY', 'CERT_DER', 'CERT_PEM', 'DER', 'PEM', 'PKCS12_PEM', 'PKCS8_DER', 'PKCS8_PEM', 'UNKNOWN']
     try:
         key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PEM, password)
     except xmlsec.Error:
