@@ -34,15 +34,15 @@ def _read_file(f_name):
 def _make_sign_key(key_data, cert_data, password):
     # keys can be ['BINARY', 'CERT_DER', 'CERT_PEM', 'DER', 'PEM', 'PKCS12_PEM', 'PKCS8_DER', 'PKCS8_PEM', 'UNKNOWN']
     try:
-        key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PEM, password)
+        key = xmlsec.Key.from_memory(key_data, xmlsec.constants.KeyDataFormatPem, password)
     except xmlsec.Error:
         key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PKCS12_PEM, password)
-    key.load_cert_from_memory(cert_data, xmlsec.KeyFormat.PEM)
+    key.load_cert_from_memory(cert_data, xmlsec.constants.KeyDataFormatPem)
     return key
 
 
 def _make_verify_key(cert_data):
-    key = xmlsec.Key.from_memory(cert_data, xmlsec.KeyFormat.CERT_PEM, None)
+    key = xmlsec.Key.from_memory(cert_data, xmlsec.constants.KeyDataFormatPem, None)
     return key
 
 
