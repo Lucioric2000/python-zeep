@@ -36,7 +36,7 @@ def _make_sign_key(key_data, cert_data, password):
     try:
         key = xmlsec.Key.from_memory(key_data, xmlsec.constants.KeyDataFormatPem, password)
     except xmlsec.Error:
-        key = xmlsec.Key.from_memory(key_data, xmlsec.KeyFormat.PKCS12_PEM, password)
+        key = xmlsec.Key.from_memory(key_data, xmlsec.constants.KeyDataFormatPkcs12, password)
     key.load_cert_from_memory(cert_data, xmlsec.constants.KeyDataFormatPem)
     return key
 
